@@ -1,5 +1,4 @@
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GTEST REQUIRED gtest gtest_main)
+find_package(GTest REQUIRED)
 
 add_executable(plugin_tests
     test_plugin.cpp
@@ -8,22 +7,11 @@ add_executable(plugin_tests
 target_include_directories(plugin_tests
     PRIVATE
         ${PROJECT_SOURCE_DIR}/plugin/include
-        ${GTEST_INCLUDE_DIRS}
-)
-
-target_compile_options(plugin_tests
-    PRIVATE
-        ${GTEST_CFLAGS_OTHER}
-)
-
-target_link_directories(plugin_tests
-    PRIVATE
-        ${GTEST_LIBRARY_DIRS}
 )
 
 target_link_libraries(plugin_tests
     PRIVATE
-        ${GTEST_LIBRARIES}
+        GTest::gtest_main
 )
 
 if(UNIX AND NOT APPLE)
