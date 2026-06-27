@@ -1,1 +1,8 @@
 build/*
+install_test/
+*.so
+*.o
+*.a
+CMakeFiles/
+cmake_install.cmake
+CMakeCache.txt

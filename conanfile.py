@@ -25,3 +25,7 @@ class ChallengeProjectConan(ConanFile):
 
         deps = CMakeDeps(self)
         deps.generate()
+
+        from conan.tools.env import VirtualRunEnv
+        runenv = VirtualRunEnv(self)
+        runenv.generate()
