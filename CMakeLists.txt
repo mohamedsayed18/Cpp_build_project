@@ -59,24 +59,28 @@ install(DIRECTORY plugin_segfault/include/plugin_segfault
 )
 
 # Linter targets for Task 5
-find_program(CLANG_FORMAT_EXECUTABLE clang-format REQUIRED)
-find_program(CLANG_TIDY_EXECUTABLE clang-tidy REQUIRED)
+find_program(CLANG_FORMAT_EXECUTABLE clang-format)
+find_program(CLANG_TIDY_EXECUTABLE clang-tidy)
 
-add_custom_target(format
-    COMMAND ${PROJECT_SOURCE_DIR}/scripts/format.sh
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT "Running clang-format to format all C++ files"
-)
+if(CLANG_FORMAT_EXECUTABLE AND CLANG_TIDY_EXECUTABLE)
+    add_custom_target(format
+        COMMAND ${PROJECT_SOURCE_DIR}/scripts/format.sh
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT "Running clang-format to format all C++ files"
+    )
 
-add_custom_target(lint
-    COMMAND ${PROJECT_SOURCE_DIR}/scripts/lint.sh
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT "Running linters (clang-format) on all C++ files"
-)
+    add_custom_target(lint
+        COMMAND ${PROJECT_SOURCE_DIR}/scripts/lint.sh
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT "Running linters (clang-format) on all C++ files"
+    )
 
-add_custom_target(clang-tidy
-    COMMAND ${PROJECT_SOURCE_DIR}/scripts/clang-tidy.sh
-    DEPENDS challenge plugin plugin_segfault plugin_tests segfault_probe plugin_segfault_tests
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT "Running clang-tidy on all C++ source files"
-)
+    add_custom_target(clang-tidy
+        COMMAND ${PROJECT_SOURCE_DIR}/scripts/clang-tidy.sh
+        DEPENDS challenge plugin plugin_segfault plugin_tests segfault_probe plugin_segfault_tests
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT "Running clang-tidy on all C++ source files"
+    )
+else()
+    message(STATUS "clang-format and/or clang-tidy not found: lint targets are disabled")
+endif()
