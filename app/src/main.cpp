@@ -14,6 +14,8 @@
 using plugin_init_fn = int (*)();
 using plugin_get_name_fn = const char* (*)();
 using plugin_add_fn = int (*)(int, int);
+using plugin_segfault_init_fn = int (*)(const char*);
+using plugin_segfault_get_name_fn = const char* (*)();
 
 class PluginLoader {
 public:
@@ -71,16 +73,16 @@ private:
     void* handle_ = nullptr;
 };
 
-std::string find_plugin(const char* argv0) {
+std::string find_plugin(const char* argv0, const std::string& base_name) {
     auto exe_dir = std::filesystem::path(argv0).parent_path();
     if (exe_dir.empty()) exe_dir = ".";
 
 #ifdef _WIN32
-    constexpr const char* name = "plugin.dll";
+    const std::string name = base_name + ".dll";
 #elif defined(__APPLE__)
-    constexpr const char* name = "libplugin.dylib";
+    const std::string name = "lib" + base_name + ".dylib";
 #else
-    constexpr const char* name = "libplugin.so";
+    const std::string name = "lib" + base_name + ".so";
 #endif
 
     // Build layout: plugin sits next to the executable.
@@ -97,7 +99,7 @@ std::string find_plugin(const char* argv0) {
 }
 
 int main(int argc, char* argv[]) {
-    auto plugin_path = find_plugin(argv[0]);
+    auto plugin_path = find_plugin(argv[0], "plugin");
     std::cout << "Loading plugin from: " << plugin_path << std::endl;
 
     PluginLoader loader(plugin_path);
@@ -123,6 +125,34 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Plugin name : " << name_fn() << std::endl;
     std::cout << "plugin_add(3, 4) = " << add_fn(3, 4) << std::endl;
+
+    auto segfault_plugin_path = find_plugin(argv[0], "plugin_segfault");
+    std::cout << "Loading plugin from: " << segfault_plugin_path << std::endl;
+
+    PluginLoader segfault_loader(segfault_plugin_path);
+    if (!segfault_loader.is_loaded()) {
+        std::cerr << "Could not load segfault plugin library." << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    auto segfault_name_fn = segfault_loader.get_symbol<plugin_segfault_get_name_fn>("plugin_segfault_get_name");
+    auto segfault_init_fn = segfault_loader.get_symbol<plugin_segfault_init_fn>("plugin_segfault_init");
+
+    if (!segfault_name_fn || !segfault_init_fn) {
+        std::cerr << "Failed to resolve segfault plugin symbols." << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    const auto stacktrace_file =
+        (std::filesystem::path(argv[0]).parent_path() / "segfault_stacktrace.txt").string();
+
+    const int segfault_rc = segfault_init_fn(stacktrace_file.c_str());
+    if (segfault_rc != 0) {
+        std::cerr << "plugin_segfault_init failed with code " << segfault_rc << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    std::cout << "Plugin name : " << segfault_name_fn() << std::endl;
 
     return EXIT_SUCCESS;
 }
