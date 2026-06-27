@@ -30,24 +30,21 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 install(TARGETS challenge
+    RUNTIME_DEPENDENCY_SET conan_deps
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 install(TARGETS plugin plugin_segfault
+    RUNTIME_DEPENDENCY_SET conan_deps
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 # Collect and install Conan runtime dependencies to lib folder
-if(DEFINED CONAN_RUNTIME_LIB_DIRS)
-    install(RUNTIME_DEPENDENCY_SET conan_deps
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PRE_EXCLUDE_REGEXES [[^/lib64/ld-linux-x86-64]] [[api-ms-win-.*]] [[ext-ms-win-.*]] [[kernel32\.dll]] [[libc\.so\..*]] [[libgcc_s\.so\..*]] [[libm\.so\..*]] [[libstdc\+\+\.so\.].*]
-        POST_EXCLUDE_REGEXES [[.*/system32/.*\.dll]]
-        DIRECTORIES ${CONAN_RUNTIME_LIB_DIRS}
-    )
-endif()
+install(RUNTIME_DEPENDENCY_SET conan_deps
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 # Also install headers from plugins for completeness
 install(DIRECTORY plugin/include/plugin

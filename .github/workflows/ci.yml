@@ -43,6 +43,9 @@ jobs:
       - name: Detect Conan profile
         run: conan profile detect --force
 
+      - name: Print CMake version
+        run: cmake --version
+
       - name: Configure compiler (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -59,7 +62,7 @@ jobs:
         run: cmake --build --preset conan-release
 
       - name: CTest
-        run: ctest --preset conan-release --output-on-failure
+        run: ctest --preset conan-release --output-on-failure -V
 
   lint:
     name: Lint (clang-format and clang-tidy)
@@ -84,6 +87,9 @@ jobs:
 
       - name: Detect Conan profile
         run: conan profile detect --force
+
+      - name: Print CMake version
+        run: cmake --version
 
       - name: Conan install
         run: conan install . --build=missing -s build_type=Release
@@ -136,6 +142,9 @@ jobs:
 
       - name: Detect Conan profile
         run: conan profile detect --force
+
+      - name: Print CMake version
+        run: cmake --version
 
       - name: Configure compiler (Linux)
         if: runner.os == 'Linux'

@@ -22,9 +22,23 @@ if(UNIX AND NOT APPLE)
 endif()
 
 add_test(NAME plugin_tests COMMAND plugin_tests)
-set_tests_properties(plugin_tests PROPERTIES
-    ENVIRONMENT "PLUGIN_PATH=$<TARGET_FILE:plugin>"
-)
+if(WIN32)
+    set_tests_properties(plugin_tests PROPERTIES
+        ENVIRONMENT
+            "PLUGIN_PATH=$<TARGET_FILE:plugin>;PATH=$<TARGET_FILE_DIR:plugin>;$ENV{PATH}"
+    )
+else()
+    set(_plugin_test_ld_path "$<TARGET_FILE_DIR:plugin>")
+    if(CONAN_RUNTIME_LIB_DIRS)
+        string(REPLACE ";" ":" _conan_runtime_ld_path "${CONAN_RUNTIME_LIB_DIRS}")
+        set(_plugin_test_ld_path "${_plugin_test_ld_path}:${_conan_runtime_ld_path}")
+    endif()
+
+    set_tests_properties(plugin_tests PROPERTIES
+        ENVIRONMENT
+            "PLUGIN_PATH=$<TARGET_FILE:plugin>;LD_LIBRARY_PATH=${_plugin_test_ld_path}:$ENV{LD_LIBRARY_PATH}"
+    )
+endif()
 
 add_executable(segfault_probe
     segfault_probe.cpp

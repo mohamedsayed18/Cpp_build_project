@@ -22,8 +22,15 @@ public:
     explicit PluginLoader(const std::string& path) {
 #ifdef _WIN32
         handle_ = LoadLibraryA(path.c_str());
+        if (!handle_) {
+            error_ = "LoadLibrary failed";
+        }
 #else
         handle_ = dlopen(path.c_str(), RTLD_LAZY);
+        if (!handle_) {
+            const char* err = dlerror();
+            if (err) error_ = err;
+        }
 #endif
     }
 
@@ -50,9 +57,11 @@ public:
     }
 
     [[nodiscard]] bool is_loaded() const { return handle_ != nullptr; }
+    [[nodiscard]] const std::string& error() const { return error_; }
 
 private:
     void* handle_ = nullptr;
+    std::string error_;
 };
 
 std::string get_plugin_path() {
@@ -74,7 +83,8 @@ protected:
     void SetUp() override {
         loader_ = std::make_unique<PluginLoader>(get_plugin_path());
         ASSERT_TRUE(loader_->is_loaded()) << "Plugin library not found. "
-            "Set PLUGIN_PATH or run from the build/bin directory.";
+            "Set PLUGIN_PATH or run from the build/bin directory. "
+            "Loader error: " << loader_->error();
     }
 
     void TearDown() override {
