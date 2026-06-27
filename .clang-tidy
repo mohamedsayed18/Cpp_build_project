@@ -1,0 +1,13 @@
+---
+Checks: >
+  -*,
+  performance-*,
+  -performance-avoid-endl,
+  bugprone-*,
+  -bugprone-reserved-identifier,
+  -bugprone-assignment-in-if-condition,
+  -bugprone-multi-level-implicit-pointer-conversion
+
+HeaderFilterRegex: '.*'
+WarningsAsErrors: '*'
+FormatStyle: file

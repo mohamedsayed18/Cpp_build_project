@@ -9,6 +9,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Generate compile_commands.json for clang-tidy
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
@@ -53,4 +56,27 @@ install(DIRECTORY plugin/include/plugin
 
 install(DIRECTORY plugin_segfault/include/plugin_segfault
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+# Linter targets for Task 5
+find_program(CLANG_FORMAT_EXECUTABLE clang-format REQUIRED)
+find_program(CLANG_TIDY_EXECUTABLE clang-tidy REQUIRED)
+
+add_custom_target(format
+    COMMAND ${PROJECT_SOURCE_DIR}/scripts/format.sh
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Running clang-format to format all C++ files"
+)
+
+add_custom_target(lint
+    COMMAND ${PROJECT_SOURCE_DIR}/scripts/lint.sh
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Running linters (clang-format) on all C++ files"
+)
+
+add_custom_target(clang-tidy
+    COMMAND ${PROJECT_SOURCE_DIR}/scripts/clang-tidy.sh
+    DEPENDS challenge plugin plugin_segfault plugin_tests segfault_probe plugin_segfault_tests
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Running clang-tidy on all C++ source files"
 )
