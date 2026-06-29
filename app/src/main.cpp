@@ -6,9 +6,9 @@
 #include <string>
 
 #ifdef _WIN32
-    #include <windows.h>
+#include <windows.h>
 #else
-    #include <dlfcn.h>
+#include <dlfcn.h>
 #endif
 
 using plugin_init_fn = int (*)();
@@ -19,7 +19,8 @@ using plugin_segfault_get_name_fn = const char* (*)();
 
 class PluginLoader {
 public:
-    explicit PluginLoader(const std::string& path) {
+    explicit PluginLoader(const std::string& path)
+    {
 #ifdef _WIN32
         handle_ = LoadLibraryA(path.c_str());
         if (!handle_) {
@@ -33,8 +34,10 @@ public:
 #endif
     }
 
-    ~PluginLoader() {
-        if (!handle_) return;
+    ~PluginLoader()
+    {
+        if (!handle_)
+            return;
 #ifdef _WIN32
         FreeLibrary(static_cast<HMODULE>(handle_));
 #else
@@ -45,11 +48,14 @@ public:
     PluginLoader(const PluginLoader&) = delete;
     PluginLoader& operator=(const PluginLoader&) = delete;
 
-    PluginLoader(PluginLoader&& other) noexcept : handle_(other.handle_) {
+    PluginLoader(PluginLoader&& other) noexcept
+        : handle_(other.handle_)
+    {
         other.handle_ = nullptr;
     }
 
-    PluginLoader& operator=(PluginLoader&& other) noexcept {
+    PluginLoader& operator=(PluginLoader&& other) noexcept
+    {
         if (this != &other) {
             handle_ = other.handle_;
             other.handle_ = nullptr;
@@ -57,9 +63,10 @@ public:
         return *this;
     }
 
-    template <typename T>
-    T get_symbol(const char* name) const {
-        if (!handle_) return nullptr;
+    template <typename T> T get_symbol(const char* name) const
+    {
+        if (!handle_)
+            return nullptr;
 #ifdef _WIN32
         return reinterpret_cast<T>(GetProcAddress(static_cast<HMODULE>(handle_), name));
 #else
@@ -73,9 +80,11 @@ private:
     void* handle_ = nullptr;
 };
 
-std::string find_plugin(const char* argv0, const std::string& base_name) {
+std::string find_plugin(const char* argv0, const std::string& base_name)
+{
     auto exe_dir = std::filesystem::path(argv0).parent_path();
-    if (exe_dir.empty()) exe_dir = ".";
+    if (exe_dir.empty())
+        exe_dir = ".";
 
 #ifdef _WIN32
     const std::string name = base_name + ".dll";
@@ -98,7 +107,8 @@ std::string find_plugin(const char* argv0, const std::string& base_name) {
     return (exe_dir / name).string();
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     auto plugin_path = find_plugin(argv[0], "plugin");
     std::cout << "Loading plugin from: " << plugin_path << std::endl;
 
@@ -135,8 +145,10 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    auto segfault_name_fn = segfault_loader.get_symbol<plugin_segfault_get_name_fn>("plugin_segfault_get_name");
-    auto segfault_init_fn = segfault_loader.get_symbol<plugin_segfault_init_fn>("plugin_segfault_init");
+    auto segfault_name_fn = segfault_loader.get_symbol<plugin_segfault_get_name_fn>(
+        "plugin_segfault_get_name");
+    auto segfault_init_fn = segfault_loader.get_symbol<plugin_segfault_init_fn>(
+        "plugin_segfault_init");
 
     if (!segfault_name_fn || !segfault_init_fn) {
         std::cerr << "Failed to resolve segfault plugin symbols." << std::endl;

@@ -5,9 +5,9 @@
 #include <string>
 
 #ifdef _WIN32
-    #include <windows.h>
+#include <windows.h>
 #else
-    #include <dlfcn.h>
+#include <dlfcn.h>
 #endif
 
 using plugin_init_fn = int (*)(const char*);
@@ -15,7 +15,8 @@ using plugin_crash_fn = void (*)();
 
 class PluginLoader {
 public:
-    explicit PluginLoader(const std::string& path) {
+    explicit PluginLoader(const std::string& path)
+    {
 #ifdef _WIN32
         handle_ = LoadLibraryA(path.c_str());
 #else
@@ -23,8 +24,10 @@ public:
 #endif
     }
 
-    ~PluginLoader() {
-        if (!handle_) return;
+    ~PluginLoader()
+    {
+        if (!handle_)
+            return;
 #ifdef _WIN32
         FreeLibrary(static_cast<HMODULE>(handle_));
 #else
@@ -32,9 +35,10 @@ public:
 #endif
     }
 
-    template <typename T>
-    T get_symbol(const char* name) const {
-        if (!handle_) return nullptr;
+    template <typename T> T get_symbol(const char* name) const
+    {
+        if (!handle_)
+            return nullptr;
 #ifdef _WIN32
         return reinterpret_cast<T>(GetProcAddress(static_cast<HMODULE>(handle_), name));
 #else
@@ -48,7 +52,8 @@ private:
     void* handle_ = nullptr;
 };
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
     if (argc < 3) {
         std::cerr << "Usage: segfault_probe <plugin_path> <stacktrace_path>" << std::endl;
         return 2;

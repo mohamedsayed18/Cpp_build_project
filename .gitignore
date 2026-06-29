@@ -1,5 +1,6 @@
 build/*
 install_test/
+install_test_ci_fix/
 *.so
 *.o
 *.a
