@@ -30,7 +30,13 @@ namespace {
         const std::string command = quote(probe_path) + " " + quote(plugin_path) + " " +
                                     quote(stacktrace_path);
 
+        // On Windows, cmd.exe requires the entire command to be wrapped in an
+        // extra pair of outer quotes when the executable token itself is quoted.
+#ifdef _WIN32
+        const int rc = std::system(("\"" + command + "\"").c_str());
+#else
         const int rc = std::system(command.c_str());
+#endif
         EXPECT_NE(rc, 0) << "Probe should crash with non-zero exit code";
 
         ASSERT_TRUE(std::filesystem::exists(stacktrace_path)) << "Stacktrace file was not created";
