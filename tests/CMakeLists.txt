@@ -23,9 +23,17 @@ endif()
 
 add_test(NAME plugin_tests COMMAND plugin_tests)
 if(WIN32)
+    # Copy GTest (and any other) runtime DLLs next to the test exe so Windows
+    # finds them without needing an extended PATH.
+    add_custom_command(TARGET plugin_tests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:plugin_tests>
+            $<TARGET_FILE_DIR:plugin_tests>
+        COMMAND_EXPAND_LISTS
+    )
     set_tests_properties(plugin_tests PROPERTIES
         ENVIRONMENT
-            "PLUGIN_PATH=$<TARGET_FILE:plugin>;PATH=$<TARGET_FILE_DIR:plugin>;$ENV{PATH}"
+            "PLUGIN_PATH=$<TARGET_FILE:plugin>"
     )
 else()
     set(_plugin_test_ld_path "$<TARGET_FILE_DIR:plugin>")

@@ -46,6 +46,13 @@ jobs:
       - name: Print CMake version
         run: cmake --version
 
+      - name: Cache Conan packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.conan2/p
+          key: conan-${{ runner.os }}-${{ matrix.compiler }}-${{ hashFiles('conanfile.py') }}
+          restore-keys: conan-${{ runner.os }}-${{ matrix.compiler }}-
+
       - name: Configure compiler (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -62,7 +69,7 @@ jobs:
         run: cmake --build --preset conan-release
 
       - name: CTest
-        run: ctest --preset conan-release --output-on-failure -V
+        run: ctest --preset conan-release --output-on-failure
 
   lint:
     name: Lint (clang-format and clang-tidy)
@@ -90,6 +97,13 @@ jobs:
 
       - name: Print CMake version
         run: cmake --version
+
+      - name: Cache Conan packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.conan2/p
+          key: conan-${{ runner.os }}-lint-${{ hashFiles('conanfile.py') }}
+          restore-keys: conan-${{ runner.os }}-lint-
 
       - name: Conan install
         run: conan install . --build=missing -s build_type=Release
@@ -145,6 +159,13 @@ jobs:
 
       - name: Print CMake version
         run: cmake --version
+
+      - name: Cache Conan packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.conan2/p
+          key: conan-${{ runner.os }}-${{ matrix.compiler }}-${{ hashFiles('conanfile.py') }}
+          restore-keys: conan-${{ runner.os }}-${{ matrix.compiler }}-
 
       - name: Configure compiler (Linux)
         if: runner.os == 'Linux'
