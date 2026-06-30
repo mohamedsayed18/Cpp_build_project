@@ -46,7 +46,9 @@ install(TARGETS plugin plugin_segfault
 # libraries in the Conan package cache on CI runners.
 install(CODE "
     cmake_policy(PUSH)
-    include(\"${CMAKE_BINARY_DIR}/generators/conan_toolchain.cmake\" NO_POLICY_SCOPE)
+    cmake_policy(SET CMP0091 NEW)
+    cmake_policy(SET CMP0011 NEW)
+    include(\"${CMAKE_BINARY_DIR}/generators/conan_toolchain.cmake\")
     cmake_policy(POP)
     foreach(_lib_dir IN LISTS CONAN_RUNTIME_LIB_DIRS)
         if(WIN32)
