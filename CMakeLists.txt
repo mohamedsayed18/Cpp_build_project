@@ -30,21 +30,42 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 install(TARGETS challenge
-    RUNTIME_DEPENDENCY_SET conan_deps
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 install(TARGETS plugin plugin_segfault
-    RUNTIME_DEPENDENCY_SET conan_deps
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-# Collect and install Conan runtime dependencies to lib folder
-install(RUNTIME_DEPENDENCY_SET conan_deps
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+# Install Conan runtime shared libraries into the install tree.
+# install(CODE) runs at install-time; it includes the Conan toolchain so that
+# CONAN_RUNTIME_LIB_DIRS is available for globbing the actual package lib dirs.
+# This avoids RUNTIME_DEPENDENCY_SET whose dependency scanner cannot locate
+# libraries in the Conan package cache on CI runners.
+install(CODE "
+    cmake_policy(PUSH)
+    include(\"${CMAKE_BINARY_DIR}/generators/conan_toolchain.cmake\" NO_POLICY_SCOPE)
+    cmake_policy(POP)
+    foreach(_lib_dir IN LISTS CONAN_RUNTIME_LIB_DIRS)
+        if(WIN32)
+            file(GLOB _runtime_libs \"\${_lib_dir}/*.dll\")
+            if(_runtime_libs)
+                file(INSTALL \${_runtime_libs}
+                    DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}\"
+                )
+            endif()
+        else()
+            file(GLOB _runtime_libs \"\${_lib_dir}/*.so*\")
+            if(_runtime_libs)
+                file(INSTALL \${_runtime_libs}
+                    DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}\"
+                )
+            endif()
+        endif()
+    endforeach()
+")
 
 # Also install headers from plugins for completeness
 install(DIRECTORY plugin/include/plugin
